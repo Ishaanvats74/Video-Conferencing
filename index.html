@@ -3,77 +3,346 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
+    <title>P2P Video Chat</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      .container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+      }
+      .video-container {
+        flex: 1;
+        min-width: 300px;
+      }
+      .chat-container {
+        flex: 1;
+        min-width: 300px;
+      }
+      video {
+        width: 100%;
+        background-color: #f0f0f0;
+        border-radius: 8px;
+      }
+      #chat {
+        height: 300px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 10px;
+        overflow-y: auto;
+        margin-bottom: 10px;
+      }
+      .control-panel {
+        margin-bottom: 20px;
+        padding: 15px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        background-color: #f9f9f9;
+      }
+      input, button {
+        padding: 8px;
+        margin: 5px 0;
+      }
+      button {
+        cursor: pointer;
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 4px;
+      }
+      .status {
+        color: #666;
+        font-style: italic;
+      }
+      .video-wrapper {
+        position: relative;
+        margin-bottom: 15px;
+      }
+      .video-label {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        background: rgba(0,0,0,0.5);
+        color: white;
+        padding: 5px 10px;
+        border-radius: 4px;
+      }
+      .message-input {
+        display: flex;
+        gap: 10px;
+      }
+      .message-input input {
+        flex: 1;
+      }
+      .error {
+        color: red;
+        margin: 5px 0;
+      }
+    </style>
   </head>
   <body>
-    Your peer ID is: <span id="pid"></span><br />
-    Your Friend's peer ID is: <input type="text" name="fid" id="fid" />
-    <button onclick="connect()">Connect</button><br />
-    <div>
-      <h3>Chat</h3>
-      <div id="chat"></div>
-      <input type="text" name="msg" id="msg" />
-      <button onclick="send()">Send</button>
+    <h1>P2P Video Chat</h1>
+    
+    <div class="control-panel">
+      <div>
+        Your Peer ID: <span id="pid" class="status">Connecting...</span>
+        <div id="connection-status" class="status"></div>
+      </div>
+      <div>
+        <input type="text" id="fid" placeholder="Enter friend's peer ID" />
+        <button id="connect-btn" onclick="connect()">Connect</button>
+      </div>
+      <div id="error-message" class="error"></div>
     </div>
-    <div>
-      <video id="myVideo" autoplay controls></video>
-      <video id="friendVideo" autoplay controls></video>
+
+    <div class="container">
+      <div class="video-container">
+        <h3>Video Streams</h3>
+        <div class="video-wrapper">
+          <div class="video-label">You</div>
+          <video id="myVideo" autoplay muted playsinline></video>
+        </div>
+        <div class="video-wrapper">
+          <div class="video-label">Friend</div>
+          <video id="friendVideo" autoplay playsinline></video>
+        </div>
+        <div>
+          <button id="toggle-video" onclick="toggleVideo()">Turn Off Video</button>
+          <button id="toggle-audio" onclick="toggleAudio()">Mute Audio</button>
+        </div>
+      </div>
+      
+      <div class="chat-container">
+        <h3>Chat</h3>
+        <div id="chat"></div>
+        <div class="message-input">
+          <input type="text" id="msg" placeholder="Type your message" onkeypress="handleKeyPress(event)" />
+          <button onclick="send()">Send</button>
+        </div>
+      </div>
     </div>
+
     <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
     <script>
-      let pid = document.getElementById("pid");
-      let chat = document.getElementById("chat");
-      let myVideo = document.getElementById("myVideo");
-      let friendVideo = document.getElementById("friendVideo");
-      let getUserMedia = navigator.getUserMedia;
-      let myPeerId = window.prompt("Enter your peer ID");
+      // DOM Elements
+      const pidElement = document.getElementById("pid");
+      const chatElement = document.getElementById("chat");
+      const myVideoElement = document.getElementById("myVideo");
+      const friendVideoElement = document.getElementById("friendVideo");
+      const connectionStatus = document.getElementById("connection-status");
+      const errorMessage = document.getElementById("error-message");
+      const toggleVideoBtn = document.getElementById("toggle-video");
+      const toggleAudioBtn = document.getElementById("toggle-audio");
+
+      // Global variables
+      let peer;
+      let connection;
+      let localStream;
+      let isVideoEnabled = true;
+      let isAudioEnabled = true;
+      let myPeerId;
+
+      // Initialize the application
+      function init() {
+        // Generate a random ID if user doesn't provide one
+        myPeerId = window.prompt("Enter your peer ID (or leave blank for random ID)");
+        
+        // Create peer object
+        peer = myPeerId ? new Peer(myPeerId) : new Peer();
+        
+        // Set up peer events
+        setupPeerEvents();
+        
+        // Get user media
+        startLocalStream();
+      }
+
+      // Set up all peer events
+      function setupPeerEvents() {
+        peer.on("open", (id) => {
+          myPeerId = id;
+          pidElement.innerText = id;
+          connectionStatus.innerText = "Ready to connect";
+        });
+
+        peer.on("error", (err) => {
+          console.error("PeerJS error:", err);
+          errorMessage.innerText = `Error: ${err.type}`;
+          connectionStatus.innerText = "Connection error";
+        });
+
+        peer.on("connection", handleIncomingConnection);
+        
+        peer.on("call", handleIncomingCall);
+      }
+
+      // Handle incoming data connection
+      function handleIncomingConnection(conn) {
+        connection = conn;
+        setupConnectionEvents();
+      }
+
+      // Set up connection events
+      function setupConnectionEvents() {
+        connection.on("open", () => {
+          connectionStatus.innerText = `Connected to ${connection.peer}`;
+          document.getElementById("fid").value = connection.peer;
+        });
+
+        connection.on("data", (data) => {
+          chatElement.innerHTML += `<p><strong>${connection.peer}:</strong> ${data}</p>`;
+          chatElement.scrollTop = chatElement.scrollHeight;
+        });
+
+        connection.on("close", () => {
+          connectionStatus.innerText = "Connection closed";
+        });
+
+        connection.on("error", (err) => {
+          console.error("Connection error:", err);
+          errorMessage.innerText = `Connection error: ${err}`;
+        });
+      }
+
+      // Start local video stream
+      function startLocalStream() {
+        navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+          .then((stream) => {
+            localStream = stream;
+            myVideoElement.srcObject = stream;
+            errorMessage.innerText = "";
+          })
+          .catch((err) => {
+            console.error("Failed to get local stream", err);
+            errorMessage.innerText = `Media error: ${err.message}`;
+          });
+      }
       
-      var conn;
-      var peer = new Peer(myPeerId);
-
-      pid.innerText = myPeerId;
-
+      // Connect to a peer
       function connect() {
-        let fid = document.getElementById("fid").value;
-        conn = peer.connect(fid);
-        conn.on("open", function () {
-          conn.send("Connected!!!");
+        const friendId = document.getElementById("fid").value;
+        if (!friendId) {
+          errorMessage.innerText = "Please enter friend's peer ID";
+          return;
+        }
+        
+        // Create data connection
+        connectionStatus.innerText = `Connecting to ${friendId}...`;
+        connection = peer.connect(friendId);
+        setupConnectionEvents();
+        
+        // Create media connection if we have local stream
+        if (localStream) {
+          const call = peer.call(friendId, localStream);
+          setupCallEvents(call);
+        } else {
+          errorMessage.innerText = "Local video stream not available";
+        }
+      }
+
+      // Handle incoming call
+      function handleIncomingCall(call) {
+        connectionStatus.innerText = `Incoming call from ${call.peer}...`;
+        
+        // Answer call with our stream
+        if (localStream) {
+          call.answer(localStream);
+        } else {
+          // Try to get stream first, then answer
+          navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+            .then((stream) => {
+              localStream = stream;
+              myVideoElement.srcObject = stream;
+              call.answer(stream);
+            })
+            .catch((err) => {
+              console.error("Failed to get local stream for answering", err);
+              errorMessage.innerText = `Media error: ${err.message}`;
+              call.answer(); // Answer without stream
+            });
+        }
+        
+        setupCallEvents(call);
+      }
+
+      // Set up media call events
+      function setupCallEvents(call) {
+        call.on("stream", (remoteStream) => {
+          friendVideoElement.srcObject = remoteStream;
+          errorMessage.innerText = "";
         });
-        getUserMedia({ video: true, audio: true }, function (stream) {
-          var call = peer.call(fid, stream);
-          myVideo.srcObject = stream;
-          call.on("stream", function (remoteStream) {
-            friendVideo.srcObject = remoteStream;
-          });
+        
+        call.on("error", (err) => {
+          console.error("Call error:", err);
+          errorMessage.innerText = `Call error: ${err}`;
+        });
+
+        call.on("close", () => {
+          friendVideoElement.srcObject = null;
         });
       }
 
+      // Send a chat message
       function send() {
-        let msg = document.getElementById("msg").value;
-        chat.innerHTML += "<p>" + `${myPeerId}: ` + msg + "</p>";
-        conn.send(msg);
+        const msgInput = document.getElementById("msg");
+        const message = msgInput.value.trim();
+        
+        if (!message) return;
+        if (!connection || connection.open === false) {
+          errorMessage.innerText = "Not connected to anyone";
+          return;
+        }
+        
+        chatElement.innerHTML += `<p><strong>You:</strong> ${message}</p>`;
+        chatElement.scrollTop = chatElement.scrollHeight;
+        connection.send(message);
+        msgInput.value = "";
       }
 
-      peer.on("connection", function (conn) {
-        let fid = document.getElementById("fid").value;
-        conn.on("data", function (data) {
-          if (document.getElementById("fid").value === "") {
-            document.getElementById("fid").value = conn.peer;
-            connect();
-          }
-          chat.innerHTML += "<p>" + `${document.getElementById("fid").value}: ` + data + "</p>";
-        });
-      });
+      // Handle Enter key press in message input
+      function handleKeyPress(event) {
+        if (event.key === "Enter") {
+          send();
+        }
+      }
 
-      peer.on("call", function (call) {
-        getUserMedia({video: true, audio: true }, function (stream) {
-          call.answer(stream);
-          myVideo.srcObject = stream;
-          call.on("stream", function(remoteStream) {
-            friendVideo.srcObject = remoteStream;
-          });
+      // Toggle video on/off
+      function toggleVideo() {
+        if (!localStream) return;
+        
+        const videoTracks = localStream.getVideoTracks();
+        if (videoTracks.length === 0) return;
+        
+        isVideoEnabled = !isVideoEnabled;
+        videoTracks.forEach(track => {
+          track.enabled = isVideoEnabled;
         });
-      });
+        
+        toggleVideoBtn.innerText = isVideoEnabled ? "Turn Off Video" : "Turn On Video";
+      }
+
+      // Toggle audio on/off
+      function toggleAudio() {
+        if (!localStream) return;
+        
+        const audioTracks = localStream.getAudioTracks();
+        if (audioTracks.length === 0) return;
+        
+        isAudioEnabled = !isAudioEnabled;
+        audioTracks.forEach(track => {
+          track.enabled = isAudioEnabled;
+        });
+        
+        toggleAudioBtn.innerText = isAudioEnabled ? "Mute Audio" : "Unmute Audio";
+      }
+
+      // Initialize the app
+      init();
     </script>
   </body>
 </html>
