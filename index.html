@@ -39,13 +39,18 @@
         conn.on("open", function () {
           conn.send("Connected!!!");
         });
-        getUserMedia({ video: true, audio: true }, function (stream) {
-          var call = peer.call(fid, stream);
-          myVideo.srcObject = stream;
-          call.on("stream", function (remoteStream) {
-            friendVideo.srcObject = remoteStream;
-          });
+        navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+        .then(function (stream) {
+            var call = peer.call(fid, stream);
+                myVideo.srcObject = stream;
+                call.on("stream", function (remoteStream) {
+                    friendVideo.srcObject = remoteStream;
+                });
+        })
+        .catch(function (err) {
+            console.error('Failed to get local stream', err);
         });
+        
       }
 
       function send() {
@@ -66,12 +71,16 @@
       });
 
       peer.on("call", function (call) {
-        getUserMedia({video: true, audio: true }, function (stream) {
-          call.answer(stream);
-          myVideo.srcObject = stream;
-          call.on("stream", function(remoteStream) {
-            friendVideo.srcObject = remoteStream;
-          });
+        navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+        .then(function (stream) {
+            call.answer(stream);
+                myVideo.srcObject = stream;
+                call.on("stream", function(remoteStream) {
+                    friendVideo.srcObject = remoteStream;
+                });
+        })
+        .catch(function (err) {
+            console.error('Failed to get local stream', err);
         });
       });
     </script>
