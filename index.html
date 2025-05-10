@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Conferencing</title>
+</head>
+<body>
+    <div>
+        <div>
+            <h1>Video Conferencing</h1>
+            <div>
+                <p>Your Peer ID: <span id="peerId"></span></p>
+                <p>Your Friend Peer ID: <input type="text" name="" id="friendId"><button onclick="connectToPeer()">Connect</button></p>
+                <video id="myVideo" autoplay controls></video>
+                <video id="friendVideo" autoplay controls></video>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+    <script>
+        let peerId = document.getElementById('peerId');
+        let peerID = prompt("Enter your Peer ID:");
+        
+        var peer = new Peer(peerID);
+        console.log(peer);
+        setTimeout(() => {
+            peerId.innerText = peerID;
+        }, 1000);
+
+        console.log("Your Peer ID: ", peerID);
+        
+        function connectToPeer() {
+            let fid = document.getElementById('friendId').value;
+            let getUserMedia = navigator.getUserMedia;
+            getUserMedia({video: true, audio: true}, function(stream){
+                let video = document.getElementById('myVideo');
+                video.srcObject = stream;
+                var call = peer.call(fid, stream);
+                call.on('stream', function(remoteStream) {
+                    console.log(remoteStream);
+                    var fvideo = document.getElementById('friendVideo');
+                    fvideo.srcObject = remoteStream;
+                });
+
+            }, function(err) {
+                console.log('Failed to get local stream' ,err);
+            });
+        };
+
+         let getUserMedia = navigator.getUserMedia;
+            peer.on('call', function(call) {
+            getUserMedia({video: true, audio: true}, function(stream) {
+                call.answer(stream);
+                call.on('stream', function(remoteStream) {
+                    console.log(remoteStream);
+                    let myVideo = document.getElementById('myVideo');
+                    myVideo.srcObject = stream;
+                    var fvideo = document.getElementById('friendVideo');
+                    fvideo.srcObject = remoteStream;
+
+                });
+            }, function(err) {
+                console.log('Failed to get local stream' ,err);
+            });
+        });
+
+
+       
+        
+
+
+    </script>
+</body>
+</html>
