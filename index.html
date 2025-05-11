@@ -29,9 +29,23 @@
       let myPeerId = window.prompt("Enter your peer ID");
       
       var conn;
-      var peer = new Peer(myPeerId);
-
+      var peer = new Peer(myPeerId,{
+        config: iceConfiguration,  
+        debug: 3 
+      });
+      
       pid.innerText = myPeerId;
+
+      const iceConfiguration = {
+        iceServers: [
+            {
+                urls: 'relay1.expressturn.com:3480',
+                username: '174697804058590759',
+                credential: '7V6VvjOi6CYKrEloCKNhV3t7UB0='
+            }
+        ],
+        iceCandidatePoolSize: 10
+    };
 
       function connect() {
         let fid = document.getElementById("fid").value;
@@ -40,7 +54,7 @@
           conn.send("Connected!!!");
         });
         getUserMedia({ video: true, audio: true }, function (stream) {
-          var call = peer.call(fid, stream);
+          var call = peer.call(fid,stream);
           myVideo.srcObject = stream;
           call.on("stream", function (remoteStream) {
             friendVideo.srcObject = remoteStream;
@@ -78,6 +92,11 @@
           console.log("Error: " + err);
         });
       });
+      
+      
+
+
+const peerConnection = new RTCPeerConnection(iceConfiguration);
     </script>
   </body>
 </html>
