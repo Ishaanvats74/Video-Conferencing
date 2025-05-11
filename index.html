@@ -25,7 +25,7 @@
       let chat = document.getElementById("chat");
       let myVideo = document.getElementById("myVideo");
       let friendVideo = document.getElementById("friendVideo");
-      let getUserMedia = navigator.getUserMedia;
+      let getUserMedia = navigator.mediaDevices.getUserMedia;
       let myPeerId = window.prompt("Enter your peer ID");
       
       var conn;
@@ -45,6 +45,8 @@
           call.on("stream", function (remoteStream) {
             friendVideo.srcObject = remoteStream;
           });
+        },function(err) {
+          console.log("Error: " + err);
         });
       }
 
@@ -72,8 +74,11 @@
           call.on("stream", function(remoteStream) {
             friendVideo.srcObject = remoteStream;
           });
+        },function(err) {
+          console.log("Error: " + err);
         });
       });
     </script>
   </body>
 </html>
+
