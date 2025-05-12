@@ -95,7 +95,10 @@
 
     function Connect() {
         let fid = document.getElementById('fid').value;
-        var conn = peer.connect(fid);
+        conn = peer.connect(fid);
+        conn.on('open', function() {
+            conn.send('connected!!!');
+        });
         navigator.mediaDevices.getUserMedia({video: true, audio: true}) 
         .then(function(stream){
             var call = peer.call(fid,stream);
@@ -106,9 +109,6 @@
         })
         .catch(function(err){
             console.log("Error: " + err);
-        });
-        conn.on('open', function() {
-            conn.send('connected!!!');
         });
     };
 
@@ -128,7 +128,7 @@
     });
 
     peer.on('connection', function(conn) { 
-        
+        let fid = document.getElementById('fid').value;
         conn.on('data',function(data){
           if(document.getElementById('fid').value === ""){
             document.getElementById('fid').value = conn.peer;
@@ -140,7 +140,7 @@
 
     function send(){
         let msg = document.getElementById('msg').value;
-        chat.innerHTML += "<p>" + `${yourID}: `+ `${msg}` + "</p>"; 
+        chat.innerHTML += "<p>" + `${yourId}: `+ `${msg}` + "</p>"; 
         conn.send(msg);
     }
     </script>
