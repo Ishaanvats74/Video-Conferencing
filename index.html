@@ -88,13 +88,6 @@
                 { urls: "stun:stun1.l.google.com:19302" },
                 { urls: "stun:stun1.l.google.com:3478" },
                 { urls: "stun:stun1.l.google.com:5349" },
-                { urls: "stun:stun2.l.google.com:19302" },
-                { urls: "stun:stun2.l.google.com:5349" },
-                { urls: "stun:stun3.l.google.com:19302" },
-                { urls: "stun:stun3.l.google.com:3478" },
-                { urls: "stun:stun3.l.google.com:5349" },
-                { urls: "stun:stun4.l.google.com:19302" },
-                { urls: "stun:stun4.l.google.com:5349" },
                 {
                     urls: 'turn:relay1.expressturn.com:3480',
                     username: '174697804058590759',
@@ -110,7 +103,8 @@
         let friendVideo = document.getElementById("friendVideo");
         let chat = document.getElementById("Chat");
         yourID.innerText = yourId;
-        var conn;
+        let outgoingConn;
+        let incomingConn;
         let localStream;
 
         var peer = new Peer(yourId, {
@@ -120,10 +114,10 @@
 
         function Connect() {
             let fid = document.getElementById('fid').value;
-            conn = peer.connect(fid);
-            conn.on('open', function() {
-                conn.send('connected!!!');
-                conn.on('data', function(data) {
+            outgoingConn = peer.connect(fid);
+            outgoingConn.on('open', function() {
+                outgoingConn.send('connected!!!');
+                outgoingConn.on('data', function(data) {
                     document.getElementById('Chat').innerHTML += "<p>" + `${fid}: ` + data + "</p>";
                     chat.scrollTop = chat.scrollHeight;
                 });
@@ -158,16 +152,16 @@
                 });
         });
 
-        peer.on('connection', function(incomingConn) {
-            conn = incomingConn;
-            conn.on('open', function() {
+        peer.on('connection', function(conn) {
+            incomingConn = conn;
+            incomingConn.on('open', function() {
                 conn.send('connected!!!');
             });
-            conn.on('data', function(data) {
-                let fid = document.getElementById('fid').value;
+            incomingConn.on('data', function(data) {
                 if (document.getElementById('fid').value === "") {
                     document.getElementById('fid').value = conn.peer;
                 }
+                let fid = document.getElementById('fid').value;
                 document.getElementById('Chat').innerHTML += "<p>" + `${document.getElementById('fid').value}: ` + data + "</p>";
                 chat.scrollTop = chat.scrollHeight;
             });
@@ -176,7 +170,12 @@
         function send() {
             let msg = document.getElementById('msg').value;
             document.getElementById('Chat').innerHTML += "<p>" + `${yourId}: ` + `${msg}` + "</p>";
-            conn.send(msg);
+            if (outgoingConn && outgoingConn.open) {
+                outgoingConn.send(msg);
+            }
+            if (incomingConn && incomingConn.open) {
+                incomingConn.send(msg);
+            }
             chat.scrollTop = chat.scrollHeight;
         };
 
@@ -231,7 +230,8 @@
             }
             myVideo.srcObject = null;
             friendVideo.srcObject = null;
-            conn.close();
+            if (outgoingConn) outgoingConn.close();
+            if (incomingConn) incomingConn.close();
             document.getElementById('fid').value = "";
             document.getElementById('Chat').innerHTML = "";
         }
