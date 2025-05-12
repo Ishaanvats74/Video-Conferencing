@@ -127,7 +127,11 @@
         });
     });
 
-    peer.on('connection', function(conn) { 
+    peer.on('connection', function(incomingConn) {
+        conn = incomingConn; 
+        conn.on('open', function() {
+            conn.send('connected!!!');
+        });
         conn.on('data',function(data){
             let fid = document.getElementById('fid').value;
             if(document.getElementById('fid').value === ""){
