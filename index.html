@@ -22,9 +22,12 @@
             <!-- Connection with friend -->
             <div class="border bg-white p-6 rounded-2xl shadow">
                 <h1>Connect with your Friend</h1>
-                <div class="flex ">
-                    <input type="text" id="fid" placeholder="Enter your Friend's Id" class="border rounded-l-md w-[600px] py-2 px-3 shadow-sm" />
-                    <button class="bg-violet-600 text-white p-2 rounded-r-md hover:bg-violet-700 px-3 text-sm font-semibold shadow" onclick="Connect()"><i class="fas fa-plug mr-2"></i>Connect</button>
+                <div class="flex justify-between">
+                    <div class="flex">
+                        <input type="text" id="fid" placeholder="Enter your Friend's Id" class="border rounded-l-md w-[600px] py-2 px-3 shadow-sm" />
+                        <button class="bg-violet-600 text-white p-2 rounded-r-md hover:bg-violet-700 px-3 text-sm font-semibold shadow" onclick="Connect()"><i class="fas fa-plug mr-2"></i>Connect</button>
+                    </div>
+                    <button class="bg-violet-600 text-white p-2 rounded-md hover:bg-violet-700 px-3 text-sm font-semibold shadow" onclick="endConnection()">End Connection</button>
                 </div>
             </div>
 
@@ -81,17 +84,34 @@
         const iceConfiguration = {
             iceServers: [
                 { urls: "stun:stun.l.google.com:19302" },
-                { urls: "stun:stun1.l.google.com:19302" },
-                { urls: "stun:stun.l.google.com:19302" },
                 { urls: "stun:stun.l.google.com:5349" },
+                { urls: "stun:stun1.l.google.com:19302" },
                 { urls: "stun:stun1.l.google.com:3478" },
                 { urls: "stun:stun1.l.google.com:5349" },
                 { urls: "stun:stun2.l.google.com:19302" },
                 { urls: "stun:stun2.l.google.com:5349" },
+                { urls: "stun:stun3.l.google.com:19302" },
                 { urls: "stun:stun3.l.google.com:3478" },
                 { urls: "stun:stun3.l.google.com:5349" },
                 { urls: "stun:stun4.l.google.com:19302" },
                 { urls: "stun:stun4.l.google.com:5349" },
+                { urls: "stun:stun:global.stun.twilio.com" },
+                { urls: "stun:stun.ekiga.net" },
+                { urls: "stun:stun.voipstunt.com" },
+                { urls: "stun:stun01.sipphone.com"},
+                { urls: "stun:stun.ekiga.net"},
+                { urls: "stun:stun.fwdnet.net"},
+                { urls: "stun:stun.ideasip.com"},
+                { urls: "stun:stun.iptel.org"},
+                { urls: "stun:stun.rixtelecom.se"},
+                { urls: "stun:stun.schlund.de"},
+                { urls: "stun:stunserver.org"},
+                { urls: "stun:stun.softjoys.com"},
+                { urls: "stun:stun.voiparound.com"},
+                { urls: "stun:stun.voipbuster.com"},
+                { urls: "stun:stun.voipstunt.com"},
+                { urls: "stun:stun.voxgratia.org"},
+                { urls: "stun:stun.xten.com"},
                 {
                     urls: 'turn:relay1.expressturn.com:3480',
                     username: '174697804058590759',
@@ -219,6 +239,17 @@
             camIcon.classList.remove("fa-video");
             camIcon.classList.add("fa-video-slash");
         }
+        }
+
+        function endConnection(){
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+            }
+            myVideo.srcObject = null;
+            friendVideo.srcObject = null;
+            conn.close();
+            document.getElementById('fid').value = "";
+            document.getElementById('Chat').innerHTML = "";
         }
     </script>
 </body>
