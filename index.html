@@ -16,16 +16,27 @@
       <button onclick="send()">Send</button>
     </div>
     <div>
-      <video id="myVideo" autoplay controls></video>
-      <video id="friendVideo" autoplay controls></video>
+      <video id="myVideo" autoplay playsinline controls></video>
+      <video id="friendVideo" autoplay playsinline controls></video>
     </div>
     <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
     <script>
+      const iceConfiguration = {
+        iceServers: [
+          { urls: "stun:stun.l.google.com:19302" },
+          { urls: "stun:stun1.l.google.com:19302" },
+            {
+                urls: 'turn:relay1.expressturn.com:3480',
+                username: '174697804058590759',
+                credential: '7V6VvjOi6CYKrEloCKNhV3t7UB0='
+            }
+        ],
+        iceCandidatePoolSize: 10
+    };
       let pid = document.getElementById("pid");
       let chat = document.getElementById("chat");
       let myVideo = document.getElementById("myVideo");
       let friendVideo = document.getElementById("friendVideo");
-      let getUserMedia = navigator.mediaDevices.getUserMedia;
       let myPeerId = window.prompt("Enter your peer ID");
       
       var conn;
@@ -35,33 +46,23 @@
       });
       
       pid.innerText = myPeerId;
-
-      const iceConfiguration = {
-        iceServers: [
-            {
-                urls: 'relay1.expressturn.com:3480',
-                username: '174697804058590759',
-                credential: '7V6VvjOi6CYKrEloCKNhV3t7UB0='
-            }
-        ],
-        iceCandidatePoolSize: 10
-    };
-
       function connect() {
         let fid = document.getElementById("fid").value;
         conn = peer.connect(fid);
         conn.on("open", function () {
           conn.send("Connected!!!");
         });
-        getUserMedia({ video: true, audio: true }, function (stream) {
+        navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+        .then(function (stream) {
           var call = peer.call(fid,stream);
           myVideo.srcObject = stream;
           call.on("stream", function (remoteStream) {
             friendVideo.srcObject = remoteStream;
           });
-        },function(err) {
+        }
+        ).catch(function(err) {
           console.log("Error: " + err);
-        });
+      });
       }
 
       function send() {
@@ -82,21 +83,18 @@
       });
 
       peer.on("call", function (call) {
-        getUserMedia({video: true, audio: true }, function (stream) {
+        navigator.mediaDevices.getUserMedia({video: true, audio: true } )
+        .then(function (stream) {
           call.answer(stream);
           myVideo.srcObject = stream;
           call.on("stream", function(remoteStream) {
             friendVideo.srcObject = remoteStream;
           });
-        },function(err) {
+        }).catch(function(err) {
           console.log("Error: " + err);
         });
       });
       
-      
-
-
-const peerConnection = new RTCPeerConnection(iceConfiguration);
     </script>
   </body>
 </html>
