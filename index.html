@@ -147,6 +147,7 @@
             navigator.mediaDevices.getUserMedia({ video: true, audio: true })
                 .then(function(stream) {
                     call.answer(stream);
+                    localStream = stream;
                     myVideo.srcObject = stream;
                     call.on('stream', function(remoteStream) {
                         friendVideo.srcObject = remoteStream;
