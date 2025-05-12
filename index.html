@@ -94,8 +94,8 @@
 
 
     function Connect() {
-        var conn = peer.connect(fid);
         let fid = document.getElementById('fid').value;
+        var conn = peer.connect(fid);
         navigator.mediaDevices.getUserMedia({video: true, audio: true}) 
         .then(function(stream){
             var call = peer.call(fid,stream);
