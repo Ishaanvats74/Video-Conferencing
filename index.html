@@ -13,25 +13,37 @@
             <!-- Heading -->
             <div class="flex justify-between ">
                 <div class="flex items-center gap-2">
-                    <span class="fas fa-video text-white bg-black px-2 py-3 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600"></span>
+                    <i class="fas fa-video text-white bg-black px-2 py-3 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600"></i>
                     <h1 class="text-2xl font-bold">Connect Now</h1>
                 </div>
-                    <div class="font-semibold border rounded-full p-2 px-4 text-sm shadow-sm bg-white">Your Id: <span id="yourID"></span></div>
+                <div class="font-semibold border rounded-full p-2 px-4 text-sm shadow-sm bg-white">Your Id: <span id="yourID"></span></div>
             </div>
+
             <!-- Connection with friend -->
             <div class="border bg-white p-6 rounded-2xl shadow">
-                <h1>Connet with your Friend</h1>
+                <h1>Connect with your Friend</h1>
                 <div class="flex ">
                     <input type="text" id="fid" placeholder="Enter your Friend's Id" class="border rounded-l-md w-[600px] py-2 px-3 shadow-sm" />
-                    <button class="bg-violet-600 text-white p-2 rounded-r-md hover:bg-violet-700 px-3 text-sm font-semibold shadow" onclick="Connect()"><span class="fas fa-plug mr-2 " ></span>Connect</button>
+                    <button class="bg-violet-600 text-white p-2 rounded-r-md hover:bg-violet-700 px-3 text-sm font-semibold shadow" onclick="Connect()"><i class="fas fa-plug mr-2"></i>Connect</button>
                 </div>
             </div>
+
             <div class="flex gap-4 h-96">
                 <!-- Video -->
                 <div class="flex flex-col bg-white rounded-2xl shadow w-full">
-                    <div class="flex items-center text-lg font-awesome mb-1 p-6">
-                        <span class="fas fa-video mr-2 text-violet-600"></span>
-                        <h1> Video Call</h1>
+                    <div class="flex items-center justify-between text-lg font-awesome mb-1 p-6">
+                        <div class="flex items-center">
+                            <i class="fas fa-video mr-2 text-violet-600"></i>
+                            <h1> Video Call</h1>
+                        </div>
+                        <div>
+                            <button class="bg-violet-600 text-white p-1 border rounded-md px-2 mr-2" onclick="mic()">
+                                <i class="fa-solid fa-microphone" id="micIcon"></i>
+                            </button>
+                            <button class="bg-violet-600 text-white p-1 border rounded-md px-2 mr-2" onclick="cam()">
+                                <i class="fas fa-video" id="camIcon"></i>
+                            </button>
+                        </div>
                     </div>
                     <hr>
                     <div class="flex gap-4 items-center p-6">
@@ -45,10 +57,11 @@
                         </div>
                     </div>
                 </div>
+
                 <!-- Chat -->
-                <div class="flex flex-col bg-white  rounded-2xl shadow w-[600px] ">
+                <div class="flex flex-col bg-white rounded-2xl shadow w-[600px] ">
                     <div class="flex items-center text-lg font-awesome mb-1 p-6">
-                        <span class="fas fa-comments mr-2 text-violet-600"></span>
+                        <i class="fas fa-comments mr-2 text-violet-600"></i>
                         <h1> Chat</h1>
                     </div>
                     <hr>
@@ -56,7 +69,7 @@
                     <hr>
                     <div class="flex w-full p-4 gap-2 h-28 justify-center">
                         <input type="text" class="border shadow-sm pl-2 rounded w-[270px]" placeholder="Type your message here..." id="msg"/>
-                        <button class="text-white bg-violet-600 p-1 border rounded-md px-2" onclick="send()"><span class="fas fa-paper-plane mr-1 "></span>Send</button>
+                        <button class="text-white bg-violet-600 p-1 border rounded-md px-2" onclick="send()"><i class="fas fa-paper-plane mr-1 "></i>Send</button>
                     </div>
                 </div>
             </div>
@@ -66,92 +79,137 @@
     <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
     <script>
         const iceConfiguration = {
-        iceServers: [
-          { urls: "stun:stun.l.google.com:19302" },
-          { urls: "stun:stun1.l.google.com:19302" },
-            {
-                urls: 'turn:relay1.expressturn.com:3480',
-                username: '174697804058590759',
-                credential: '7V6VvjOi6CYKrEloCKNhV3t7UB0='
-            }
-        ],
-        iceCandidatePoolSize: 10
-    };
+            iceServers: [
+                { urls: "stun:stun.l.google.com:19302" },
+                { urls: "stun:stun1.l.google.com:19302" },
+                {
+                    urls: 'turn:relay1.expressturn.com:3480',
+                    username: '174697804058590759',
+                    credential: '7V6VvjOi6CYKrEloCKNhV3t7UB0='
+                }
+            ],
+            iceCandidatePoolSize: 10
+        };
 
+        let yourId = window.prompt("Enter your Id");
+        let yourID = document.getElementById("yourID");
+        let myVideo = document.getElementById("myVideo");
+        let friendVideo = document.getElementById("friendVideo");
+        let chat = document.getElementById("Chat");
+        yourID.innerText = yourId;
+        var conn;
+        let localStream;
 
-    let yourId = window.prompt("Enter your Id");
-    let yourID = document.getElementById("yourID");
-    let myVideo = document.getElementById("myVideo");
-    let friendVideo = document.getElementById("friendVideo");
-    let chat = document.getElementById("Chat");
-    yourID.innerText = yourId;
-    var conn;
+        var peer = new Peer(yourId, {
+            config: iceConfiguration,
+            debug: 3
+        });
 
-    var peer = new Peer(yourId,{
-        config: iceConfiguration,  
-        debug: 3 
-    });
+        function Connect() {
+            let fid = document.getElementById('fid').value;
+            conn = peer.connect(fid);
+            conn.on('open', function() {
+                conn.send('connected!!!');
+                conn.on('data', function(data) {
+                    document.getElementById('Chat').innerHTML += "<p>" + `${fid}: ` + data + "</p>";
+                    chat.scrollTop = chat.scrollHeight;
+                });
+            });
 
+            navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+                .then(function(stream) {
+                    localStream = stream;
+                    var call = peer.call(fid, stream);
+                    myVideo.srcObject = stream;
+                    call.on('stream', function(remoteStream) {
+                        friendVideo.srcObject = remoteStream;
+                    });
+                })
+                .catch(function(err) {
+                    console.log("Error: " + err);
+                });
+        };
 
-    function Connect() {
-        let fid = document.getElementById('fid').value;
-        conn = peer.connect(fid);
-        conn.on('open', function() {
-            conn.send('connected!!!');
+        peer.on('call', function(call) {
+            navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+                .then(function(stream) {
+                    call.answer(stream);
+                    myVideo.srcObject = stream;
+                    call.on('stream', function(remoteStream) {
+                        friendVideo.srcObject = remoteStream;
+                    });
+                })
+                .catch(function(err) {
+                    console.log("Error: " + err);
+                });
+        });
+
+        peer.on('connection', function(incomingConn) {
+            conn = incomingConn;
+            conn.on('open', function() {
+                conn.send('connected!!!');
+            });
             conn.on('data', function(data) {
-                document.getElementById('Chat').innerHTML += "<p>" + `${fid}: ` + data + "</p>";
+                let fid = document.getElementById('fid').value;
+                if (document.getElementById('fid').value === "") {
+                    document.getElementById('fid').value = conn.peer;
+                }
+                document.getElementById('Chat').innerHTML += "<p>" + `${document.getElementById('fid').value}: ` + data + "</p>";
                 chat.scrollTop = chat.scrollHeight;
             });
         });
-        navigator.mediaDevices.getUserMedia({video: true, audio: true}) 
-        .then(function(stream){
-            var call = peer.call(fid,stream);
-            myVideo.srcObject = stream;
-            call.on('stream', function(remoteStream) {
-                friendVideo.srcObject = remoteStream;
-            });
-        })
-        .catch(function(err){
-            console.log("Error: " + err);
-        });
-    };
 
-
-    peer.on('call', function(call) {
-	navigator.mediaDevices.getUserMedia({video: true, audio: true}) 
-        .then(function(stream){
-            call.answer(stream);
-            myVideo.srcObject = stream;
-            call.on('stream', function(remoteStream) {
-                friendVideo.srcObject = remoteStream;
-         });
-        })
-        .catch(function(err){
-            console.log("Error: " + err);
-        });
-    });
-
-    peer.on('connection', function(incomingConn) {
-        conn = incomingConn; 
-        conn.on('open', function() {
-            conn.send('connected!!!');
-        });
-        conn.on('data',function(data){
-            let fid = document.getElementById('fid').value;
-            if(document.getElementById('fid').value === ""){
-                document.getElementById('fid').value = conn.peer;
-            };
-            document.getElementById('Chat').innerHTML += "<p>" + `${document.getElementById('fid').value}: ` + data + "</p>";
+        function send() {
+            let msg = document.getElementById('msg').value;
+            document.getElementById('Chat').innerHTML += "<p>" + `${yourId}: ` + `${msg}` + "</p>";
+            conn.send(msg);
             chat.scrollTop = chat.scrollHeight;
-            });
-       });
+        };
 
-    function send(){
-        let msg = document.getElementById('msg').value;
-        document.getElementById('Chat').innerHTML += "<p>" + `${yourId}: `+ `${msg}` + "</p>"; 
-        conn.send(msg);
-        chat.scrollTop = chat.scrollHeight;
-    }
+        document.getElementById('fid').addEventListener('keypress', function(event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                Connect();
+            }
+        });
+
+        document.getElementById('msg').addEventListener('keypress', function(event) {
+            if (event.key == "Enter" && !event.shiftKey) {
+                event.preventDefault();
+                send();
+                document.getElementById('msg').value = "";
+            }
+        });
+
+        let cameraOn = true;
+        let micOn = true;
+
+        function mic() {
+            micOn = !micOn;
+            localStream.getAudioTracks()[0].enabled = micOn;
+            let micIcon = document.getElementById('micIcon');
+            if (micOn) {
+                micIcon.classList.remove("fa-microphone-slash");
+                micIcon.classList.add("fa-microphone");
+            } else {
+                micIcon.classList.remove("fa-microphone");
+                micIcon.classList.add("fa-microphone-slash");
+            }
+
+        }
+
+        function cam() {
+            cameraOn = !cameraOn;
+            localStream.getVideoTracks()[0].enabled = cameraOn;
+            let camIcon = document.getElementById("camIcon");
+                if (cameraOn) {
+            camIcon.classList.remove("fa-video-slash");
+            camIcon.classList.add("fa-video");
+        } else {
+            camIcon.classList.remove("fa-video");
+            camIcon.classList.add("fa-video-slash");
+        }
+        }
     </script>
 </body>
 </html>
