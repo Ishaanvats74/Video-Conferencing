@@ -98,10 +98,10 @@
         conn = peer.connect(fid);
         conn.on('open', function() {
             conn.send('connected!!!');
-        });
-        conn.on('data', function(data) {
-            document.getElementById('Chat').innerHTML += "<p>" + `${fid}: ` + data + "</p>";
-            chat.scrollTop = chat.scrollHeight;
+            conn.on('data', function(data) {
+                document.getElementById('Chat').innerHTML += "<p>" + `${fid}: ` + data + "</p>";
+                chat.scrollTop = chat.scrollHeight;
+            });
         });
         navigator.mediaDevices.getUserMedia({video: true, audio: true}) 
         .then(function(stream){
