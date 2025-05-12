@@ -128,19 +128,21 @@
     });
 
     peer.on('connection', function(conn) { 
-        let fid = document.getElementById('fid').value;
         conn.on('data',function(data){
-          if(document.getElementById('fid').value === ""){
-            document.getElementById('fid').value = conn.peer;
-          };
-          document.getElementById('chat').innerHTML += "<p>" + `${document.getElementById('fid').value}: ` + data + "</p>";
-        })
+            let fid = document.getElementById('fid').value;
+            if(document.getElementById('fid').value === ""){
+                document.getElementById('fid').value = conn.peer;
+            };
+            document.getElementById('Chat').innerHTML += "<p>" + `${document.getElementById('fid').value}: ` + data + "</p>";
+            chat.scrollTop = chat.scrollHeight;
+            });
        });
 
     function send(){
         let msg = document.getElementById('msg').value;
-        document.getElementById('chat').innerHTML += "<p>" + `${yourId}: `+ `${msg}` + "</p>"; 
+        document.getElementById('Chat').innerHTML += "<p>" + `${yourId}: `+ `${msg}` + "</p>"; 
         conn.send(msg);
+        chat.scrollTop = chat.scrollHeight;
     }
     </script>
 </body>
