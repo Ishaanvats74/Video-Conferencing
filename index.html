@@ -52,10 +52,10 @@
                         <h1> Chat</h1>
                     </div>
                     <hr>
-                    <div class="bg-gray-100 h-full overflow-y-auto p-6"></div>
+                    <div class="bg-gray-100 h-full overflow-y-auto p-6" id="Chat"></div>
                     <hr>
                     <div class="flex w-full p-4 gap-2 h-28 justify-center">
-                        <input type="text" class="border shadow-sm pl-2 rounded w-[270px]" placeholder="Type your message here..." />
+                        <input type="text" class="border shadow-sm pl-2 rounded w-[270px]" placeholder="Type your message here..." id="msg"/>
                         <button class="text-white bg-violet-600 p-1 border rounded-md px-2"><span class="fas fa-paper-plane mr-1 "></span>Send</button>
                     </div>
                 </div>
@@ -83,6 +83,7 @@
     let yourID = document.getElementById("yourID");
     let myVideo = document.getElementById("myVideo");
     let friendVideo = document.getElementById("friendVideo");
+    let chat = document.getElementById("Chat");
     yourID.innerText = yourId;
     var conn;
 
@@ -96,6 +97,10 @@
         let fid = document.getElementById('fid').value;
         navigator.mediaDevices.getUserMedia({video: true, audio: true}) 
         .then(function(stream){
+            var conn = peer.connect(fid);
+            conn.on('open', function() {
+                conn.send('connected!!!');
+            });
             var call = peer.call(fid,stream);
             myVideo.srcObject = stream;
             call.on('stream', function(remoteStream) {
@@ -120,9 +125,22 @@
         .catch(function(err){
             console.log("Error: " + err);
         });
-});
+    });
 
+    peer.on('connection', function(conn) { 
+        let fid = document.getElementById('fid').value;
+        conn.on('data',function(data){
+          if(document.getElementById(fid).value === ""){
+            document.getElementById(fid).value = conn.peer;
+          };
+          chat.innerHTML += "<p>" + `${fid}: ` + data + "</p>";
+        })
+       });
 
+    function send(){
+        let msg = document.getElementById('msg').value;
+        chat.innerHTML += "<p>" + `${yourID}: `+ `${msg}` + "</p>"; 
+    }
     </script>
 </body>
 </html>
