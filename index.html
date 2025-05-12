@@ -94,21 +94,21 @@
 
 
     function Connect() {
+        var conn = peer.connect(fid);
         let fid = document.getElementById('fid').value;
         navigator.mediaDevices.getUserMedia({video: true, audio: true}) 
         .then(function(stream){
-            var conn = peer.connect(fid);
-            conn.on('open', function() {
-                conn.send('connected!!!');
-            });
             var call = peer.call(fid,stream);
             myVideo.srcObject = stream;
             call.on('stream', function(remoteStream) {
                 friendVideo.srcObject = remoteStream;
-         });
+            });
         })
         .catch(function(err){
             console.log("Error: " + err);
+        });
+        conn.on('open', function() {
+            conn.send('connected!!!');
         });
     };
 
@@ -128,18 +128,20 @@
     });
 
     peer.on('connection', function(conn) { 
-        let fid = document.getElementById('fid').value;
+        
         conn.on('data',function(data){
-          if(document.getElementById(fid).value === ""){
-            document.getElementById(fid).value = conn.peer;
+          if(document.getElementById('fid').value === ""){
+            document.getElementById('fid').value = conn.peer;
           };
           chat.innerHTML += "<p>" + `${fid}: ` + data + "</p>";
+          
         })
        });
 
     function send(){
         let msg = document.getElementById('msg').value;
         chat.innerHTML += "<p>" + `${yourID}: `+ `${msg}` + "</p>"; 
+        conn.send(msg);
     }
     </script>
 </body>
