@@ -16,17 +16,14 @@
                     <span class="fas fa-video text-white bg-black px-2 py-3 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600"></span>
                     <h1 class="text-2xl font-bold">Connect Now</h1>
                 </div>
-                <div class="flex gap-2">
-                    <div class="font-semibold border rounded-full p-2 px-4 text-sm shadow-sm bg-white">Your Id: <span></span></div>
-                    <div class="font-semibold border rounded-full p-2 px-4 text-sm shadow-sm bg-white">Your Friend Id: <span></span></div>
-                </div>
+                    <div class="font-semibold border rounded-full p-2 px-4 text-sm shadow-sm bg-white">Your Id: <span id="yourID"></span></div>
             </div>
             <!-- Connection with friend -->
             <div class="border bg-white p-6 rounded-2xl shadow">
                 <h1>Connet with your Friend</h1>
                 <div class="flex ">
-                    <input type="text" name="" id="" placeholder="Enter your Friend's Id" class="border rounded-l-md w-[600px] py-2 px-3 shadow-sm" />
-                    <button class="bg-violet-600 text-white p-2 rounded-r-md hover:bg-violet-700 px-3 text-sm font-semibold shadow"><span class="fas fa-plug mr-2 "></span>Connect</button>
+                    <input type="text" id="fid" placeholder="Enter your Friend's Id" class="border rounded-l-md w-[600px] py-2 px-3 shadow-sm" />
+                    <button class="bg-violet-600 text-white p-2 rounded-r-md hover:bg-violet-700 px-3 text-sm font-semibold shadow"><span class="fas fa-plug mr-2 " onclick="Connet()"></span>Connect</button>
                 </div>
             </div>
             <div class="flex gap-4 h-96">
@@ -65,5 +62,68 @@
             </div>
         </div>
     </div>
+
+    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+    <script>
+        const iceConfiguration = {
+        iceServers: [
+          { urls: "stun:stun.l.google.com:19302" },
+          { urls: "stun:stun1.l.google.com:19302" },
+            {
+                urls: 'turn:relay1.expressturn.com:3480',
+                username: '174697804058590759',
+                credential: '7V6VvjOi6CYKrEloCKNhV3t7UB0='
+            }
+        ],
+        iceCandidatePoolSize: 10
+    };
+
+
+    let yourId = window.prompt("Enter your Id");
+    let yourID = document.getElementById("yourID");
+    let myVideo = document.getElementById("myVideo");
+    let friendVideo = document.getElementById("friendVideo");
+    let fid = document.getElementById("fid");
+    yourID.innerText = yourId;
+    var conn;
+
+    var peer = new Peer(yourId,{
+        config: iceConfiguration,  
+        debug: 3 
+    });
+
+
+    function Connet() {
+        let fid = document.getElementById('fid').value;
+        navigator.mediaDevices.getUserMedia({video: true, audio: true}) 
+        .then(function(stream){
+            var call = peer.call(fid,stream);
+            myVideo.srcObject = stream;
+            call.on('stream', function(remoteStream) {
+                friendVideo.srcObject = remoteStream;
+         });
+        })
+        .catch(function(err){
+            console.log("Error: " + err);
+        });
+    };
+
+
+    peer.on('call', function(call) {
+	navigator.mediaDevices.getUserMedia({video: true, audio: true}) 
+        .then(function(stream){
+            call.answer(stream);
+            myVideo.srcObject = stream;
+            call.on('stream', function(remoteStream) {
+                friendVideo.srcObject = remoteStream;
+         });
+        })
+        .catch(function(err){
+            console.log("Error: " + err);
+        });
+});
+
+
+    </script>
 </body>
 </html>
