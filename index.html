@@ -133,14 +133,13 @@
           if(document.getElementById('fid').value === ""){
             document.getElementById('fid').value = conn.peer;
           };
-          chat.innerHTML += "<p>" + `${fid}: ` + data + "</p>";
-          
+          document.getElementById('chat').innerHTML += "<p>" + `${document.getElementById('fid').value}: ` + data + "</p>";
         })
        });
 
     function send(){
         let msg = document.getElementById('msg').value;
-        chat.innerHTML += "<p>" + `${yourId}: `+ `${msg}` + "</p>"; 
+        document.getElementById('chat').innerHTML += "<p>" + `${yourId}: `+ `${msg}` + "</p>"; 
         conn.send(msg);
     }
     </script>
