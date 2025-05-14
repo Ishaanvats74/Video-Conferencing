@@ -8,7 +8,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
-    <div class="container min-h-screen px-48 py-8 bg-slate-50">
+    <div class="container min-h-screen xl:px-48 lg:px-24 md:px-12 px-4 py-8 bg-slate-50 flex-wrap">
         <div class="flex flex-col gap-4">
             <!-- Heading -->
             <div class="flex justify-between ">
@@ -24,14 +24,14 @@
                 <h1>Connect with your Friend</h1>
                 <div class="flex justify-between">
                     <div class="flex">
-                        <input type="text" id="fid" placeholder="Enter your Friend's Id" class="border rounded-l-md w-[600px] py-2 px-3 shadow-sm" />
+                        <input type="text" id="fid" placeholder="Enter your Friend's Id" class="border rounded-l-md w-full max-w-xl py-2 px-3 shadow-sm " />
                         <button class="bg-violet-600 text-white p-2 rounded-r-md hover:bg-violet-700 px-3 text-sm font-semibold shadow" onclick="Connect()"><i class="fas fa-plug mr-2"></i>Connect</button>
                     </div>
                     <button class="bg-violet-600 text-white p-2 rounded-md hover:bg-violet-700 px-3 text-sm font-semibold shadow" onclick="endConnection()">End Connection</button>
                 </div>
             </div>
 
-            <div class="flex gap-4 h-96">
+            <div class="flex-col lg:flex-row gap-4 h-auto">
                 <!-- Video -->
                 <div class="flex flex-col bg-white rounded-2xl shadow w-full">
                     <div class="flex items-center justify-between text-lg font-awesome mb-1 p-6">
@@ -62,7 +62,7 @@
                 </div>
 
                 <!-- Chat -->
-                <div class="flex flex-col bg-white rounded-2xl shadow w-[600px] ">
+                <div class="flex flex-col bg-white rounded-2xl shadow w-full lg:max-w-lg ">
                     <div class="flex items-center text-lg font-awesome mb-1 p-6">
                         <i class="fas fa-comments mr-2 text-violet-600"></i>
                         <h1> Chat</h1>
@@ -71,7 +71,7 @@
                     <div class="bg-gray-100 h-full overflow-y-auto p-6" id="Chat"></div>
                     <hr>
                     <div class="flex w-full p-4 gap-2 h-28 justify-center">
-                        <input type="text" class="border shadow-sm pl-2 rounded w-[270px]" placeholder="Type your message here..." id="msg"/>
+                        <input type="text" class="border shadow-sm pl-2 rounded w-full max-w-xs" placeholder="Type your message here..." id="msg"/>
                         <button class="text-white bg-violet-600 p-1 border rounded-md px-2" onclick="send()"><i class="fas fa-paper-plane mr-1 "></i>Send</button>
                     </div>
                 </div>
